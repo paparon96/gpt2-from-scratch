@@ -519,7 +519,10 @@ for step in range(max_steps):
     for param_group in optimizer.param_groups:
         param_group['lr'] = lr
     optimizer.step()
-    torch.mps.synchronize() # wait for the GPU to finish work
+    if device_type == "cuda":
+        torch.cuda.synchronize() # wait for the GPU to finish work
+    elif device_type == "cpu": # MacOSX is being classified as CPU currently, even though it has MPS!
+        torch.mps.synchronize() # wait for the GPU to finish work
     t1 = time.time()
     dt = t1 - t0 # time difference in seconds
     tokens_processed = train_loader.B * train_loader.T * grad_accum_steps * ddp_world_size
