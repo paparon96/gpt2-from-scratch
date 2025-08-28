@@ -165,7 +165,7 @@ max_length = 30
 
 model = GPT.from_pretrained('gpt2')
 model.eval()
-model.to('cuda')
+model.to("mps")
 
 # prefix tokens
 import tiktoken
@@ -173,7 +173,7 @@ enc = tiktoken.get_encoding('gpt2')
 tokens = enc.encode("Hello, I'm a language model,")
 tokens = torch.tensor(tokens, dtype=torch.long) # (8,)
 tokens = tokens.unsqueeze(0).repeat(num_return_sequences, 1) # (5, 8)
-x = tokens.to('cuda')
+x = tokens.to("mps")
 
 # generate! right now x is (B, T) where B = 5, T = 8
 # set the seed to 42
