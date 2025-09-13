@@ -242,7 +242,7 @@ class DataLoaderLite:
 # -----------------------------------------------------------------------------
 # simple launch:
 # python train_gpt2.py
-# DDP launch for e.g. 8 GPUs:
+# DDP launch for e.g. 2 GPUs:
 # torchrun --standalone --nproc_per_node=2 train_gpt2.py
 
 # run the training loop
