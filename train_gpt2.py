@@ -243,6 +243,15 @@ class DataLoaderLite:
     def next_batch(self):
         B, T = self.B, self.T
         buf = self.tokens[self.current_position : self.current_position+B*T+1]
+        if len(buf) < B * T + 1:
+            # not enough tokens left in the current shard
+            # pad with zeros (the tokenizer's <|endoftext|> token)
+            padding = torch.zeros(B * T + 1 - len(buf), dtype=torch.long)
+            buf = torch.cat((buf, padding), dim=0)
+        # try:
+        #     x = (buf[:-1]).view(B, T) # inputs
+        # except RuntimeError:
+        #     breakpoint()
         x = (buf[:-1]).view(B, T) # inputs
         y = (buf[1:]).view(B, T) # targets
         # advance the position in the tensor
@@ -323,6 +332,7 @@ max_lr = 6e-4
 min_lr = max_lr * 0.1
 warmup_steps = 10
 max_steps = 50
+val_freq_steps = 20
 # TODO: To get an actually reasonable model, use the below parameters instead
 # warmup_steps = 715
 # max_steps = 19073
@@ -346,7 +356,7 @@ for step in range(max_steps):
     t0 = time.time()
 
     # once in a while evaluate our validation loss
-    if step % 100 == 0:
+    if step % val_freq_steps == 0:
         model.eval()
         val_loader.reset()
         with torch.no_grad():

@@ -19,6 +19,7 @@ local_dir = "edu_fineweb10B"
 remote_name = "sample-10BT"
 shard_size = int(1e8) # 100M tokens per shard, total of 100 shards
 split = "train"
+sample_size = 5
 
 # create the cache the local directory if it doesn't exist yet
 DATA_CACHE_DIR = os.path.join(os.path.dirname(__file__), local_dir)
@@ -26,7 +27,11 @@ os.makedirs(DATA_CACHE_DIR, exist_ok=True)
 
 # download the dataset -- only use the first document for computational reasons (this leads to clear overfitting during training)
 fw = load_dataset("HuggingFaceFW/fineweb-edu", name=remote_name, split=split, streaming=True)
-fineweb_dataset = next(iter(fw))
+fineweb_dataset = fw.take(sample_size)
+
+# I used the below code to generate a validation example!
+# fineweb_dataset = fw.skip(sample_size).take(sample_size)
+# split = "val"
 
 # download the dataset (Original)
 # fw = load_dataset("HuggingFaceFW/fineweb-edu", name=remote_name, split="train", streaming=True)
@@ -46,10 +51,11 @@ def tokenize(doc):
 def write_datafile(filename, tokens_np):
     np.save(filename, tokens_np)
 
-
-filename = os.path.join(DATA_CACHE_DIR, f"edufineweb__{split}_000000")
-all_tokens_np = tokenize(fineweb_dataset)
-write_datafile(filename, all_tokens_np)
+for i, current_document in enumerate(fineweb_dataset):
+    filename_current_document  = os.path.join(DATA_CACHE_DIR, f"edufineweb__{split}_{i}")
+    # print(filename_current_document)
+    all_tokens_current_document = tokenize(current_document)
+    write_datafile(filename_current_document, all_tokens_current_document)
 
 # # tokenize all documents and write output shards, each of shard_size tokens (last shard has remainder)
 # nprocs = max(1, os.cpu_count()//2)
